@@ -57,7 +57,55 @@ pipeline {
 
 ## Solution
 ```Jenkinsfile
+pipeline {
+    agent any
+    parameters {
+      choice choices: ['DEVELOPMENT', 'STAGING', 'PRODUCTION'], 
+         description: 'Choose the environment for this deployment.', 
+         name: 'ENVIRONMENT'
+      
+      password defaultValue: '123ABC', 
+         description: 'Enter the API key to use for this deployment.', 
+         name: 'API_KEY'
+      
+      text defaultValue: 'This is the change log.', 
+         description: 'Enter the components that were changed in this deployment.', 
+         name: 'CHANGELOG'
+    }    
+    stages {
+        stage('Test') {
+            steps {
+                echo "This step tests the compiled project"
+            }
+        }
+        stage('Deploy') {
+            when {
+              expression { params.ENVIRONMENT == "PRODUCTION" }
+            }            
+            steps {
+                echo "This step deploys the project"
+            }
+        }        
+        stage('Report') {
+            steps {
+                echo "This stage generates a report"
+                sh "printf \"${params.CHANGELOG}\" > ${params.ENVIRONMENT}.txt"
+                archiveArtifacts allowEmptyArchive: true, 
+                    artifacts: '*.txt', 
+                    fingerprint: true, 
+                    followSymlinks: false, 
+                    onlyIfSuccessful: true
+            }
+        }
+    }
+}
+```
+
+
+
+# Fixed code
 ...
+
 pipeline {
     agent any
     parameters {
@@ -114,38 +162,5 @@ pipeline {
     }
 }
 
-```
-
-
-
-# Fixed code
-...
-
-pipeline {
-    agent any
-    stages {
-        stage('Test') {
-            steps {
-                echo "This step tests the project"
-            }
-        }
-        stage('Deploy') {
-            steps {
-                echo "This stage deploys the project"
-            }
-        }
-        stage('Report') {
-            steps {
-                echo "This stage generates a report"
-                bat "echo This is the change log. > report.txt"
-                archiveArtifacts allowEmptyArchive: true,
-                    artifacts: '*.txt',
-                    fingerprint: true,
-                    followSymlinks: false,
-                    onlyIfSuccessful: true
-            }
-        }
-    }
-}
 
 ...
