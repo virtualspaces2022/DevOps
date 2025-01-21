@@ -83,3 +83,41 @@ pipeline {
     }
 }
 ```
+
+
+# Example for Prompting
+
+```
+pipeline {
+    agent any
+    parameters {
+        choice(name: 'DEFAULT_ENVIRONMENT',
+            choices: ['DEVELOPMENT', 'STAGING', 'PRODUCTION'],
+            description: 'Choose the default environment for this deployment')
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                echo "Building..."
+            }
+        }
+        stage('Deploy') {
+            steps {
+                script {
+                    // Ask the user to confirm or override the environment selection
+                    def selectedEnvironment = input(
+                        message: 'Confirm or select the environment for deployment:',
+                        parameters: [
+                            choice(name: 'ENVIRONMENT', 
+                                   choices: ['DEVELOPMENT', 'STAGING', 'PRODUCTION'], 
+                                   description: 'Choose the environment for deployment')
+                        ]
+                    )
+                    echo "Deploying to ${selectedEnvironment}"
+                }
+            }
+        }
+    }
+}
+```
