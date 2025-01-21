@@ -61,17 +61,21 @@ pipeline {
 pipeline {
     agent any
     parameters {
-      choice choices: ['DEVELOPMENT', 'STAGING', 'PRODUCTION'], 
-         description: 'Choose the environment for this deployment.', 
-         name: 'ENVIRONMENT'
-      
-      password defaultValue: '123ABC', 
-         description: 'Enter the API key to use for this deployment.', 
-         name: 'API_KEY'
-      
-      text defaultValue: 'This is the change log.', 
-         description: 'Enter the components that were changed in this deployment.', 
-         name: 'CHANGELOG'
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['DEVELOPMENT', 'STAGING', 'PRODUCTION'], 
+            description: 'Choose the environment for this deployment.'
+        )
+        password(
+            name: 'API_KEY',
+            defaultValue: '123ABC', 
+            description: 'Enter the API key to use for this deployment.'
+        )
+        text(
+            name: 'CHANGELOG',
+            defaultValue: 'This is the change log.', 
+            description: 'Enter the components that were changed in this deployment.'
+        )
     }    
     stages {
         stage('Test') {
@@ -81,25 +85,35 @@ pipeline {
         }
         stage('Deploy') {
             when {
-              expression { params.ENVIRONMENT == "PRODUCTION" }
+                expression { params.ENVIRONMENT == "PRODUCTION" }
             }            
             steps {
-                echo "This step deploys the project"
+                echo "Deploying to the ${params.ENVIRONMENT} environment"
+                echo "Using API key: ${params.API_KEY}"
             }
         }        
         stage('Report') {
             steps {
                 echo "This stage generates a report"
-                sh "printf \"${params.CHANGELOG}\" > ${params.ENVIRONMENT}.txt"
-                archiveArtifacts allowEmptyArchive: true, 
+                script {
+                    if (isUnix()) {
+                        sh "printf \"${params.CHANGELOG}\" > ${params.ENVIRONMENT}.txt"
+                    } else {
+                        bat "echo ${params.CHANGELOG} > ${params.ENVIRONMENT}.txt"
+                    }
+                }
+                archiveArtifacts(
+                    allowEmptyArchive: true, 
                     artifacts: '*.txt', 
                     fingerprint: true, 
                     followSymlinks: false, 
                     onlyIfSuccessful: true
+                )
             }
         }
     }
 }
+
 ```
 
 
