@@ -57,6 +57,7 @@ pipeline {
 
 ## Solution
 ```Jenkinsfile
+...
 pipeline {
     agent any
     parameters {
