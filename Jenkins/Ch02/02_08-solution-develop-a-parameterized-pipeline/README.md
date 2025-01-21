@@ -105,6 +105,7 @@ pipeline {
 
 # Fixed code
 ...
+
 pipeline {
     agent any
     stages {
@@ -131,4 +132,5 @@ pipeline {
         }
     }
 }
+
 ...
